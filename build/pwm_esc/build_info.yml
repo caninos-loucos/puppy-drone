@@ -1,0 +1,49 @@
+cmake:
+  application:
+    configuration-dir: '/home/ana/arduino-puppy/pwm_esc'
+    source-dir: '/home/ana/arduino-puppy/pwm_esc'
+  board:
+    name: 'poodle-toy-v1'
+    path:
+     - '/home/ana/arduino-puppy/zephyr/boards/caninos/poodle-toy-v1'
+    qualifiers: 'puppy_v2'
+    revision: ''
+  devicetree:
+    bindings-dirs:
+     - '/home/ana/arduino-puppy/zephyr/dts/bindings'
+    files:
+     - '/home/ana/arduino-puppy/zephyr/boards/caninos/poodle-toy-v1/poodle-toy-v1.dts'
+     - '/home/ana/arduino-puppy/pwm_esc/boards/poodle-toy-v1.overlay'
+    include-dirs:
+     - '/home/ana/arduino-puppy/modules/hal/nxp/dts'
+     - '/home/ana/arduino-puppy/modules/hal/stm32/dts'
+     - '/home/ana/arduino-puppy/zephyr/include'
+     - '/home/ana/arduino-puppy/zephyr/include/zephyr'
+     - '/home/ana/arduino-puppy/zephyr/dts/common'
+     - '/home/ana/arduino-puppy/zephyr/dts/vendor'
+     - '/home/ana/arduino-puppy/zephyr/dts/rx'
+     - '/home/ana/arduino-puppy/zephyr/dts/x86'
+     - '/home/ana/arduino-puppy/zephyr/dts/xtensa'
+     - '/home/ana/arduino-puppy/zephyr/dts/sparc'
+     - '/home/ana/arduino-puppy/zephyr/dts/riscv'
+     - '/home/ana/arduino-puppy/zephyr/dts/posix'
+     - '/home/ana/arduino-puppy/zephyr/dts/arm64'
+     - '/home/ana/arduino-puppy/zephyr/dts/arm'
+     - '/home/ana/arduino-puppy/zephyr/dts/arc'
+     - '/home/ana/arduino-puppy/zephyr/dts'
+    user-files:
+     - '/home/ana/arduino-puppy/pwm_esc/boards/poodle-toy-v1.overlay'
+  kconfig:
+    files:
+     - '/home/ana/arduino-puppy/zephyr/boards/caninos/poodle-toy-v1/poodle-toy-v1_defconfig'
+     - '/home/ana/arduino-puppy/pwm_esc/prj.conf'
+     - '/home/ana/arduino-puppy/pwm_esc/build/pwm_esc/zephyr/.config.sysbuild'
+    user-files:
+     - '/home/ana/arduino-puppy/pwm_esc/prj.conf'
+  toolchain:
+    name: 'zephyr'
+    path: '/home/ana/zephyr-sdk-0.16.8'
+  zephyr:
+    version: '4.2.99'
+    zephyr-base: '/home/ana/arduino-puppy/zephyr'
+version: '0.1.0'

@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2024 Ayush Singh <ayush@beagleboard.org>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	aliases {
+		pwm-motor0 = &pwm_led0;
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+		pwm_led0: pwm_led_0 {
+			pwms = <&pwm2 0 2500000 0>;
+			label = "PWM MB1";
+		};
+	};
+};

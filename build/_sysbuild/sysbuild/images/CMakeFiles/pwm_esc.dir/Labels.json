@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/CMakeFiles/pwm_esc"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/CMakeFiles/pwm_esc.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/CMakeFiles/pwm_esc-complete.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-build.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-configure.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-download.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-install.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-mkdir.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-patch.rule"
+		},
+		{
+			"file" : "/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/sysbuild/images/pwm_esc-prefix/src/pwm_esc-stamp/pwm_esc-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"pwm_esc"
+		],
+		"name" : "pwm_esc"
+	}
+}

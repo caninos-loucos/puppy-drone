@@ -1,0 +1,11 @@
+# Load Zephyr Arch Kconfig descriptions.
+osource "/home/ana/arduino-puppy/zephyr/arch/rx/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/x86/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/xtensa/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/sparc/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/riscv/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/posix/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/mips/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/arm64/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/arm/Kconfig"
+osource "/home/ana/arduino-puppy/zephyr/arch/arc/Kconfig"

@@ -1,0 +1,13 @@
+manifest:
+    remotes:
+        - name: caninos
+          url-base: https://github.com/anacforcelli
+
+    projects:
+        - name: zephyr
+          remote: caninos
+          revision: main
+          import:
+              name-allowlist:
+                  - mcuboot
+                  - zcbor

@@ -1,0 +1,72 @@
+ELF Header:
+  Magic:   7f 45 4c 46 01 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF32
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           RISC-V
+  Version:                           0x1
+  Entry point address:               0x1c000000
+  Start of program headers:          52 (bytes into file)
+  Start of section headers:          948660 (bytes into file)
+  Flags:                             0x1, RVC, soft-float ABI
+  Size of this header:               52 (bytes)
+  Size of program headers:           32 (bytes)
+  Number of program headers:         3
+  Size of section headers:           40 (bytes)
+  Number of section headers:         32
+  Section header string table index: 31
+
+Section Headers:
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            00000000 000000 000000 00      0   0  0
+  [ 1] rom_start         PROGBITS        1c000000 000100 0001d8 00  AX  0   0 256
+  [ 2] reset             PROGBITS        1c0001d8 0002d8 000004 00  AX  0   0  4
+  [ 3] exceptions        PROGBITS        1c0001dc 0002dc 0001d6 00  AX  0   0  4
+  [ 4] text              PROGBITS        1c0003b4 0004b4 005c66 00  AX  0   0  4
+  [ 5] initlevel         PROGBITS        1c00601c 00611c 000040 00   A  0   0  4
+  [ 6] device_area       PROGBITS        1c00605c 00615c 0000c0 00   A  0   0  4
+  [ 7] sw_isr_table      PROGBITS        1c00611c 00621c 000100 00   A  0   0  4
+  [ 8] flash_driver[...] PROGBITS        1c00621c 00631c 000018 00   A  0   0  4
+  [ 9] gpio_driver_[...] PROGBITS        1c006234 006334 000024 00   A  0   0  4
+  [10] spi_driver_a[...] PROGBITS        1c006258 006358 000008 00   A  0   0  4
+  [11] uart_driver_[...] PROGBITS        1c006260 006360 000064 00   A  0   0  4
+  [12] log_const_area    PROGBITS        1c0062c4 0063c4 000010 00   A  0   0  4
+  [13] tbss              NOBITS          1c0062d4 0063d4 000004 00 WAT  0   0  4
+  [14] rodata            PROGBITS        1c0062d4 0063d4 000824 00   A  0   0  4
+  [15] datas             PROGBITS        1c006af8 006bf8 000a38 00  WA  0   0  4
+  [16] device_states     PROGBITS        1c007530 007630 00000c 00  WA  0   0  1
+  [17] bss               NOBITS          1c007540 00763c 001108 00  WA  0   0  8
+  [18] noinit            NOBITS          1c008650 00763c 001a00 00  WA  0   0 16
+  [19] .comment          PROGBITS        00000000 00763c 000020 01  MS  0   0  1
+  [20] .debug_aranges    PROGBITS        00000000 007660 0016a8 00      0   0  8
+  [21] .debug_info       PROGBITS        00000000 008d08 078e90 00      0   0  1
+  [22] .debug_abbrev     PROGBITS        00000000 081b98 00b2bb 00      0   0  1
+  [23] .debug_line       PROGBITS        00000000 08ce53 028a19 00      0   0  1
+  [24] .debug_frame      PROGBITS        00000000 0b586c 003ed0 00      0   0  4
+  [25] .debug_str        PROGBITS        00000000 0b973c 00829e 01  MS  0   0  1
+  [26] .debug_loc        PROGBITS        00000000 0c19da 01603e 00      0   0  1
+  [27] .debug_ranges     PROGBITS        00000000 0d7a18 003c30 00      0   0  8
+  [28] .riscv.attributes RISCV_ATTRIBUTE 00000000 0db648 000044 00      0   0  1
+  [29] .symtab           SYMTAB          00000000 0db68c 005bb0 10     30 562  4
+  [30] .strtab           STRTAB          00000000 0e123c 00660f 00      0   0  1
+  [31] .shstrtab         STRTAB          00000000 0e784b 000169 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  D (mbind), p (processor specific)
+
+Program Headers:
+  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+  RISCV_ATTRIBUT 0x0db648 0x00000000 0x00000000 0x00044 0x00000 R   0x1
+  LOAD           0x000100 0x1c000000 0x1c000000 0x0753c 0x0a050 RWE 0x100
+  TLS            0x0063d4 0x1c0062d4 0x1c0062d4 0x00000 0x00004 R   0x4
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     .riscv.attributes 
+   01     rom_start reset exceptions text initlevel device_area sw_isr_table flash_driver_api_area gpio_driver_api_area spi_driver_api_area uart_driver_api_area log_const_area rodata datas device_states bss noinit 
+   02     tbss 

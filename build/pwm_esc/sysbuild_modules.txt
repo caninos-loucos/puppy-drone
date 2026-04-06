@@ -1,0 +1,1 @@
+"mcuboot":"/home/ana/arduino-puppy/bootloader/mcuboot":"/home/ana/arduino-puppy/bootloader/mcuboot/boot/zephyr/sysbuild"

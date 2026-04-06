@@ -1,0 +1,25 @@
+cmake:
+  board:
+    name: 'poodle-toy-v1'
+    path:
+     - '/home/ana/arduino-puppy/zephyr/boards/caninos/poodle-toy-v1'
+    qualifiers: 'puppy_v2'
+    revision: ''
+  images:
+   - name: 'pwm_esc'
+     source-dir: '/home/ana/arduino-puppy/pwm_esc'
+     type: 'MAIN'
+   - name: 'mcuboot'
+     source-dir: '/home/ana/arduino-puppy/bootloader/mcuboot/boot/zephyr'
+     type: 'BOOTLOADER'
+  kconfig:
+    files:
+     - '/home/ana/arduino-puppy/pwm_esc/build/_sysbuild/empty.conf'
+     - '/home/ana/arduino-puppy/pwm_esc/sysbuild.conf'
+    user-files:
+     - '/home/ana/arduino-puppy/pwm_esc/sysbuild.conf'
+version: '0.1.0'
+west:
+  command: '/home/ana/arduino-puppy/ArduinoCore-zephyr/venv/bin/west build -p -b poodle-toy-v1 --sysbuild'
+  topdir: '/home/ana/arduino-puppy'
+  version: '1.4.0'
