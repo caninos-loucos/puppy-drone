@@ -1,2 +1,0 @@
-# Load Zephyr board defconfig descriptions.
-osource "/home/ana/arduino-puppy/zephyr/boards/caninos/poodle-toy-v1/Kconfig.defconfig"
