@@ -9,6 +9,7 @@
  * @file Sample app to demonstrate PWM.
  */
 
+#include <stdint.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/kernel.h>
@@ -17,26 +18,24 @@
 static const struct pwm_dt_spec pwm_motor0 =
     PWM_DT_SPEC_GET(DT_ALIAS(pwm_motor0));
 
-#define PERIOD 2500000
+#define PERIOD 1250000
 
 int main(void) {
-  uint32_t period = PERIOD;
-  uint32_t duty;
-  uint8_t dir = 0U;
+  int32_t period = PERIOD;
+  int32_t duty;
+  int dir = 0U;
   int ret;
-
-  printk("PWM-based blinky\n");
 
   if (!pwm_is_ready_dt(&pwm_motor0)) {
     printk("Error: PWM device %s is not ready\n", pwm_motor0.dev->name);
     return 0;
   }
-  duty = 4 * period / 10; //duty inicial de 40%
+
+  duty = 5 * period / 10; // duty inicial de 50%
   ret = pwm_set_dt(&pwm_motor0, period, duty);
-      printk("conectando esc");
-
-
-  k_usleep(10000000);
+  printk("Connecting ESC\n");
+  dir = 1;
+  k_usleep(5000000);
 
   while (1) {
     ret = pwm_set_dt(&pwm_motor0, period, duty);
@@ -45,16 +44,14 @@ int main(void) {
       return 0;
     }
 
-    duty = 6 * period / 10; //duty de 60%
-    ret = pwm_set_dt(&pwm_motor0, period, duty);
-    printk("Using duty %d\n", duty);
-    k_usleep(3000000);
+    duty += (int32_t)dir * period / 200;
+    if ((duty >= 7 * period / 10) || (duty <= 5 * period / 10)) {
+      dir = -dir;
+    }
 
-    duty = 4 * period / 10; //duty de 40% (parado)
     ret = pwm_set_dt(&pwm_motor0, period, duty);
-    printk("Using duty %d\n", duty);
-    k_usleep(10000000);
+    printk("Using duty %d ns (%.1f)\n", duty, (double)(duty * 100) / period);
+    k_usleep(1000000);
   }
   return 0;
 }
-
