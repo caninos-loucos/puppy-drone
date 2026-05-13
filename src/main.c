@@ -56,29 +56,37 @@ int main(void) {
       printk("Error: PWM device %s is not ready\n", pwms[i]->dev->name);
       return 0;
     }
-
-    duty = 5 * period / 10; // duty inicial de 50%
-    ret = pwm_set_dt(pwms[i], period, duty);
-    printk("Connecting ESC\n");
-    dir = 1;
-    k_usleep(5000000);
-
-    do
-    {
-      duty += (int32_t)dir * period / 200;
-      if ((duty >= 7 * period / 10)) {
-        dir = -dir;
-      }
-
-      ret = pwm_set_dt(pwms[i], period, duty);
-        if (ret) {
-          printk("Error %d: failed to set pulse width\n", ret);
-          return 0;
-        }
-      printk("Using duty %d ns (%.1f)\n", duty, (double)(duty * 100) / period);
-      k_usleep(2000000);
-    } while ((duty > 5 * period / 10));
   }
+  duty = 5 * period / 10; // duty inicial de 50%
+
+  for(int i = 0; i < NUM_PWMS; i++)
+  {
+    ret = pwm_set_dt(pwms[i], period, duty);
+  }
+
+  printk("Connecting ESC\n");
+  dir = 1;
+  k_usleep(5000000);
+
+  do
+  {
+    duty += (int32_t)dir * period / 200;
+    if ((duty >= 7 * period / 10)) {
+      dir = -dir;
+    }
+
+    for(int i = 0; i < NUM_PWMS; i++)
+    {
+      ret = pwm_set_dt(pwms[i], period, duty);
+      if (ret) {
+        printk("Error %d: failed to set pulse width\n", ret);
+        return 0;
+      }
+    }
+
+    printk("Using duty %d ns (%.1f)\n", duty, (double)(duty * 100) / period);
+    k_usleep(2000000);
+  } while ((duty > 5 * period / 10));
 
   return 0;
 }
