@@ -1,19 +1,38 @@
-/*
- * Copyright (c) 2024 Ayush Singh <ayush@beagleboard.org>
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 / {
 	aliases {
 		pwm-motor0 = &pwm_led0;
+		pwm-motor1 = &pwm_led1;
+		pwm-motor2 = &pwm_led2;
+		pwm-motor3 = &pwm_led3;
+		pwm-motor4 = &pwm_led4;
+		pwm-motor5 = &pwm_led5;
 	};
 
 	pwmleds {
 		compatible = "pwm-leds";
 		pwm_led0: pwm_led_0 {
+			pwms = <&pwm1 0 2500000 0>;
+			label = "io3";
+		};
+		pwm_led1: pwm_led_1 {
+			pwms = <&pwm1 1 2500000 0>;
+			label = "io5";
+		};
+		pwm_led2: pwm_led_2 {
+			pwms = <&pwm1 2 2500000 0>;
+			label = "io6";
+		};
+		pwm_led3: pwm_led_3 {
+			pwms = <&pwm1 3 2500000 0>;
+			label = "io7";
+		};
+		pwm_led4: pwm_led_4 {
 			pwms = <&pwm2 0 2500000 0>;
-			label = "PWM MB1";
+			label = "io8";
+		};
+		pwm_led5: pwm_led_5 {
+			pwms = <&pwm2 1 2500000 0>;
+			label = "io9";
 		};
 	};
 };
