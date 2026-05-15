@@ -11,6 +11,12 @@
 		pwm-motor3 = &pwm_led3;
 		pwm-motor4 = &pwm_led4;
 		pwm-motor5 = &pwm_led5;
+		button0 = &button0;
+	};
+
+	buttons{
+		compatible = "gpio-button";
+		gpios = <&arduino_header 9 0>;
 	};
 
 	pwmleds {
