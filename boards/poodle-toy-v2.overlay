@@ -14,9 +14,11 @@
 		button0 = &button0;
 	};
 
-	buttons{
-		compatible = "gpio-button";
-		gpios = <&arduino_header 9 0>;
+	buttons {
+		button0: button0 {
+			compatible = "gpio-button";
+			gpios = <&arduino_header 9 0>;
+		};
 	};
 	
 	pwmleds {
