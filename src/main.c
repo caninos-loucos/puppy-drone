@@ -80,8 +80,7 @@ int main(void) {
       if (up == 4) { // se os 4 motores estiverem ligados, desligar um por um
         ret = pwm_set_dt(pwms[down], period, duty);
         down = down + 1;
-        if (down ==
-            4) { // se os 4 motores estiverem desligados, resetar os contadores
+        if (down == 4) { // se os 4 motores estiverem desligados, resetar os contadores
           up = 0;
           down = 0;
         }
