@@ -7,6 +7,7 @@
 		pwm-motor4 = &pwm_led4;
 		pwm-motor5 = &pwm_led5;
 		button0 = &button_0;
+		imu-sensor = &mpu6050;
 	};
 
 	gpio_keys {
@@ -42,5 +43,21 @@
 			pwms = <&pwm2 1 2500000 0>;
 			label = "io9";
 		};
+	};
+};
+
+
+&i2c0 { 
+	mpu6050: mpu6050@68 {
+		compatible = "invensense,mpu6050";
+		reg = <0x68>;
+		status = "okay";
+
+		/* Resolution / Full-scale configuration */
+		accel-fs = <2>;       /* Valid values: 2, 4, 8, 16 (in +/- g) */
+		gyro-fs = <250>;      /* Valid values: 250, 500, 1000, 2000 (in +/- deg/s) */
+
+		/* Sample rate divider (baserate / (1 + X)) */
+		smplrt-div = <0>;     /* 0 means 1kHz for accel, 8kHz for gyro */
 	};
 };
