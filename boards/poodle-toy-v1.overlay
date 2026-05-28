@@ -47,7 +47,7 @@
 };
 
 
-&i2c0 { 
+&i2c0 {
 	mpu6050: mpu6050@68 {
 		compatible = "invensense,mpu6050";
 		reg = <0x68>;
@@ -56,6 +56,8 @@
 		/* Resolution / Full-scale configuration */
 		accel-fs = <2>;       /* Valid values: 2, 4, 8, 16 (in +/- g) */
 		gyro-fs = <250>;      /* Valid values: 250, 500, 1000, 2000 (in +/- deg/s) */
+
+		int-gpios = <&arduino_header 19 GPIO_ACTIVE_HIGH>;
 
 		/* Sample rate divider (baserate / (1 + X)) */
 		smplrt-div = <0>;     /* 0 means 1kHz for accel, 8kHz for gyro */

@@ -1,4 +1,4 @@
-* SPDX-License-Identifier: Apache-2.0
+/* SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -12,8 +12,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 
-static const struct device mpu = 
-  DEVICE_DT_GET_ANY(invensense_mpu6050);
+static const struct device *const mpu6050 = DEVICE_DT_GET_ONE(invensense_mpu6050);
 
 static const struct pwm_dt_spec pwm_motor0 =
     PWM_DT_SPEC_GET(DT_ALIAS(pwm_motor0));
@@ -48,19 +47,27 @@ static const struct gpio_dt_spec button =
   // saturações motores
 
 #define dutymax  8 * PERIOD /10 //saturação do motor
-#define dutymin  4 * PERIOD /10 //minimo do motor em voo 
+#define dutymin  4 * PERIOD /10 //minimo do motor em voo
 
 static const struct pwm_dt_spec *pwms[6] = {&pwm_motor0, &pwm_motor1,
                                             &pwm_motor2, &pwm_motor3,
                                             &pwm_motor4, &pwm_motor5};
 
 int main(void) {
+
+  printk("Hello\n");
+
+	if (!device_is_ready(mpu6050)) {
+		printf("Device %s is not ready\n", mpu6050->name);
+		return 0;
+	}
+
   struct sensor_value accel[3];
   struct sensor_value gyro[3];
   int32_t period = PERIOD;
-  int32_t duty; //duty para conexão com escs
+  int32_t duty = 10 * PERIOD / 4 ; //duty de 40% para conexão com escs
   int pitch = 0;
-  int roll = 0; 
+  int roll = 0;
   int dyaw = 0;
   int ret;
   int32_t duty0 = 0;
@@ -69,7 +76,7 @@ int main(void) {
   int32_t duty3 = 0;
   int yaw = 0;
 
-  
+
 
   if (!gpio_is_ready_dt(&button)) {
     printk("Error: Button is not Ready\n");
@@ -93,7 +100,7 @@ int main(void) {
 
    k_usleep(5000000);
 
-  if (gpio_pin_get_dt(&button)) { // se botão ligado, avisar antes de entrar no loop 
+  if (gpio_pin_get_dt(&button)) { // se botão ligado, avisar antes de entrar no loop
     while (gpio_pin_get_dt(&button)){
       printk ("Desligue o botão e ligue de novo para iniciar");
       k_usleep (500000);
@@ -102,15 +109,15 @@ int main(void) {
 
   while (1) {
 
-    //lendo sensor 
+    //lendo sensor
 
-    sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ, accel);
-    sensor_channel_get(dev, SENSOR_CHAN_GYRO_XYZ, gyro);
+    sensor_channel_get(mpu6050, SENSOR_CHAN_ACCEL_XYZ, accel);
+    sensor_channel_get(mpu6050, SENSOR_CHAN_GYRO_XYZ, gyro);
 
     //se quiser printar accell
-    //printk("Accel: X=%f, Y=%f, Z=%f m/s^2\n",sensor_value_to_double(&accel[0]),sensor_value_to_double(&accel[1]),sensor_value_to_double(&accel[2]));
-    // se quiser printar gyro 
-    //printk("Gyro:  X=%f, Y=%f, Z=%f rad/s\n", sensor_value_to_double(&gyro[0]), sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2]));
+    printk("Accel: X=%f, Y=%f, Z=%f m/s^2\n",sensor_value_to_double(&accel[0]),sensor_value_to_double(&accel[1]),sensor_value_to_double(&accel[2]));
+    // se quiser printar gyro
+    printk("Gyro:  X=%f, Y=%f, Z=%f rad/s\n", sensor_value_to_double(&gyro[0]), sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2]));
 
     pitch = - sensor_value_to_double(&accel[0]);
     roll =  - sensor_value_to_double(&accel[1]);
@@ -135,8 +142,8 @@ int main(void) {
       } else {
         ret = pwm_set_dt(pwms[0], period, duty0);
       }
-      
-            
+
+
       //MOTOR2:
       if (duty1 > dutymax){
         ret = pwm_set_dt(pwms[1], period, dutymax);
@@ -146,7 +153,7 @@ int main(void) {
         ret = pwm_set_dt(pwms[1], period, duty1);
       }
 
-            
+
       //MOTOR3:
       if (duty2 > dutymax){
         ret = pwm_set_dt(pwms[2], period, dutymax);
@@ -156,7 +163,7 @@ int main(void) {
         ret = pwm_set_dt(pwms[2], period, duty2);
       }
 
-            
+
       //MOTOR4:
       if (duty3 > dutymax){
         ret = pwm_set_dt(pwms[3], period, dutymax);
@@ -167,7 +174,7 @@ int main(void) {
       }
 
 
-    } else { // sem botão, deligar PWM 
+    } else { // sem botão, deligar PWM
         ret = pwm_set_dt(pwms[0], period, duty);
         ret = pwm_set_dt(pwms[1], period, duty);
         ret = pwm_set_dt(pwms[2], period, duty);
@@ -176,8 +183,6 @@ int main(void) {
         printk ("coords: P = %d R = %d dY = %d\n", pitch, roll, dyaw);
         printk ("dutys: 1 = %d 2 = %d 3 = %d 4 = %d \n", (duty0 * 100)/ PERIOD , (duty1 * 100)/ PERIOD, (duty2 * 100)/ PERIOD, (duty3 * 100)/ PERIOD);
     }
-    
-
     k_usleep(1);
   }
 
