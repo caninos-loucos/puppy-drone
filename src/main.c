@@ -111,6 +111,7 @@ int main(void) {
 
     //lendo sensor
 
+    sensor_sample_fetch(mpu6050);
     sensor_channel_get(mpu6050, SENSOR_CHAN_ACCEL_XYZ, accel);
     sensor_channel_get(mpu6050, SENSOR_CHAN_GYRO_XYZ, gyro);
 
@@ -129,7 +130,7 @@ int main(void) {
     duty0 = base - (kpp * pitch) + (kpr * roll) - (kiy * yaw);
     duty1 = base + (kpp * pitch) - (kpr * roll) - (kiy * yaw);
     duty2 = base - (kpp * pitch) - (kpr * roll) + (kiy * yaw);
-    duty0 = base + (kpp * pitch) + (kpr * roll) + (kiy * yaw);
+    duty3 = base + (kpp * pitch) + (kpr * roll) + (kiy * yaw);
 
 
 
