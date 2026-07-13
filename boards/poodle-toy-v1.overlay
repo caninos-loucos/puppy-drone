@@ -44,3 +44,26 @@
 		};
 	};
 };
+
+&i2c0 {
+	mpu1: mpu1@68 {
+		compatible = "invensense,mpu6050";
+		reg = <0x68>;
+		int-gpios = <&arduino_header 14 GPIO_ACTIVE_HIGH>;	
+		status = "okay";	
+	};
+
+	mpu2: mpu2@69 {
+		compatible = "invensense,mpu6050";
+		reg = <0x69>;
+		int-gpios = <&arduino_header 15 GPIO_ACTIVE_HIGH>;	
+		status = "okay";	
+	};
+
+	bmp180: bmp180@77 {
+        compatible = "bosch,bmp180";
+        reg = <0x77>;
+        status = "okay";
+		osr-press = <3>; 
+    };
+};
