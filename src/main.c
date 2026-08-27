@@ -12,7 +12,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 
-static const struct device *const mpu6050 = DEVICE_DT_GET_ONE(invensense_mpu6050);
+static const struct device *const imu1 = DEVICE_DT_GET(DT_NODELABEL(mpu1));
+
+static const struct device *const imu2 = DEVICE_DT_GET(DT_NODELABEL(mpu2));
+
 
 static const struct pwm_dt_spec pwm_motor0 =
     PWM_DT_SPEC_GET(DT_ALIAS(pwm_motor0));
@@ -38,16 +41,19 @@ static const struct gpio_dt_spec button =
 #define PERIOD 2500000
 #define NUM_PWMS 6
 
-  // CONSTANTES DE CONTROLE (SÓ PROPORCIONAL POR ENQUANTO) (exceto dy, que é integral)
-#define kpp 0
-#define kpr 0
-#define kiy 0
-#define base 30*PERIOD/100
+  // CONSTANTES DE CONTROLE
+#define kpp 50000
+#define kpr 50000
+#define kdp 500
+#define kdr 500
+#define kip 100
+#define kir 100
+#define MAXIPITCH 2
+#define MAXIROLL 2
 
   // saturações motores
 
-#define dutymax  8 * PERIOD /10 //saturação do motor
-#define dutymin  4 * PERIOD /10 //minimo do motor em voo
+
 
 static const struct pwm_dt_spec *pwms[6] = {&pwm_motor0, &pwm_motor1,
                                             &pwm_motor2, &pwm_motor3,
@@ -55,26 +61,42 @@ static const struct pwm_dt_spec *pwms[6] = {&pwm_motor0, &pwm_motor1,
 
 int main(void) {
 
-  printk("Hello\n");
 
-	if (!device_is_ready(mpu6050)) {
-		printf("Device %s is not ready\n", mpu6050->name);
+	if (!device_is_ready(imu1)) {
+		printf("1 não foi");
 		return 0;
 	}
 
-  struct sensor_value accel[3];
-  struct sensor_value gyro[3];
+  if (!device_is_ready(imu2)) {
+		printf("2 não foi");
+		return 0;
+	}
+
+  struct sensor_value accel1[3];
+  struct sensor_value accel2[3];
   int32_t period = PERIOD;
-  int32_t duty = 10 * PERIOD / 4 ; //duty de 40% para conexão com escs
-  int pitch = 0;
-  int roll = 0;
-  int dyaw = 0;
+  int32_t duty = 4 * PERIOD / 10 ; //duty de 40% para conexão com escs
+  int32_t base = 44 * PERIOD / 100;
+  double pitch = 0;
+  double roll = 0;
+  double ipitch = 0;
+  double iroll = 0;
+  double dpitch = 0;
+  double droll = 0;
+  double yaw = 0;
+  double p1 = 0;
+  double r1 = 0;
+  double p2 = 0;
+  double r2 = 0;
+
+  int32_t dutymax = 7 * PERIOD /10;
+  int32_t dutymin = 4 * PERIOD /10;
+
   int ret;
   int32_t duty0 = 0;
   int32_t duty1 = 0;
   int32_t duty2 = 0;
   int32_t duty3 = 0;
-  int yaw = 0;
 
 
 
@@ -111,80 +133,108 @@ int main(void) {
 
     //lendo sensor
 
-    sensor_sample_fetch(mpu6050);
-    sensor_channel_get(mpu6050, SENSOR_CHAN_ACCEL_XYZ, accel);
-    sensor_channel_get(mpu6050, SENSOR_CHAN_GYRO_XYZ, gyro);
+    sensor_sample_fetch(imu1);
+    sensor_channel_get(imu1, SENSOR_CHAN_ACCEL_XYZ, accel1);
+    sensor_sample_fetch(imu2);
+    sensor_channel_get(imu2, SENSOR_CHAN_ACCEL_XYZ, accel2);
 
     //se quiser printar accell
-    printk("Accel: X=%f, Y=%f, Z=%f m/s^2\n",sensor_value_to_double(&accel[0]),sensor_value_to_double(&accel[1]),sensor_value_to_double(&accel[2]));
-    // se quiser printar gyro
-    printk("Gyro:  X=%f, Y=%f, Z=%f rad/s\n", sensor_value_to_double(&gyro[0]), sensor_value_to_double(&gyro[1]), sensor_value_to_double(&gyro[2]));
+    //printk("Accel: X=%f, Y=%f, Z=%f m/s^2\n",sensor_value_to_double(&accel[0]),sensor_value_to_double(&accel[1]),sensor_value_to_double(&accel[2]));
 
-    pitch = - sensor_value_to_double(&accel[0]);
-    roll =  - sensor_value_to_double(&accel[1]);
-    dyaw =  sensor_value_to_double(&gyro[2]);
-    yaw = yaw + dyaw ;
+    p1 = - sensor_value_to_double(&accel1[0])/2;
+    p2 = - sensor_value_to_double(&accel2[0])/2;
+    r1 = - sensor_value_to_double(&accel1[1])/2;
+    r2 = - sensor_value_to_double(&accel2[1])/2;
 
+    //atualizando o controle
+    dpitch =  - p1 - p2 + pitch;
+    droll =  - r1 - r2 + roll;
+
+    pitch = p1 + p2;
+    roll =  r1 + r2;
+
+    if (iroll > MAXIROLL){
+      iroll = MAXIROLL;
+    }
+
+    if (iroll < MAXIROLL){
+      iroll =  - MAXIROLL;
+    }
+
+    if (ipitch > MAXIPITCH){
+      ipitch = MAXIPITCH;
+    }
+
+    if (ipitch < MAXIPITCH){
+      ipitch = - MAXIPITCH;
+    }
+    
 
     //CONTAS em NANOSEGUNDOS (2500000 é 100%)
-    duty0 = base - (kpp * pitch) + (kpr * roll) - (kiy * yaw);
-    duty1 = base + (kpp * pitch) - (kpr * roll) - (kiy * yaw);
-    duty2 = base - (kpp * pitch) - (kpr * roll) + (kiy * yaw);
-    duty3 = base + (kpp * pitch) + (kpr * roll) + (kiy * yaw);
+    duty0 = base - ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) + ((kpr * roll) + (kdr * droll) + (kir * iroll));
+    duty1 = base + ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) - ((kpr * roll) + (kdr * droll) + (kir * iroll));
+    duty2 = base - ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) - ((kpr * roll) + (kdr * droll) + (kir * iroll));
+    duty3 = base + ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) + ((kpr * roll) + (kdr * droll) + (kir * iroll));
 
-
-
-    if (gpio_pin_get_dt(&button)) { // se botão ligado, ativar motores
       //MOTOR1:
       if (duty0 > dutymax){
-        ret = pwm_set_dt(pwms[0], period, dutymax);
+        duty0 = dutymax;
       } else if (duty0 < dutymin){
-        ret = pwm_set_dt(pwms[0], period, dutymin);
+        duty0 = dutymin;
       } else {
-        ret = pwm_set_dt(pwms[0], period, duty0);
+        ipitch += pitch;
+        iroll += pitch;
       }
 
 
       //MOTOR2:
       if (duty1 > dutymax){
-        ret = pwm_set_dt(pwms[1], period, dutymax);
+        duty1 = dutymax;
       } else if (duty1 < dutymin){
-        ret = pwm_set_dt(pwms[1], period, dutymin);
+        duty1 = dutymin;
       } else {
-        ret = pwm_set_dt(pwms[1], period, duty1);
+        ipitch += pitch;
+        iroll += pitch;
       }
-
 
       //MOTOR3:
       if (duty2 > dutymax){
-        ret = pwm_set_dt(pwms[2], period, dutymax);
+        duty2 = dutymax;
       } else if (duty2 < dutymin){
-        ret = pwm_set_dt(pwms[2], period, dutymin);
+        duty2 = dutymin;
       } else {
-        ret = pwm_set_dt(pwms[2], period, duty2);
+        ipitch += pitch;
+        iroll += pitch;
       }
-
 
       //MOTOR4:
       if (duty3 > dutymax){
-        ret = pwm_set_dt(pwms[3], period, dutymax);
+        duty3 = dutymax;
       } else if (duty3 < dutymin){
-        ret = pwm_set_dt(pwms[3], period, dutymin);
+        duty3 = dutymin;
       } else {
-        ret = pwm_set_dt(pwms[3], period, duty3);
+        ipitch += pitch;
+        iroll += pitch;
       }
+
+    if (!gpio_pin_get_dt(&button) && (abs(roll) < 3) && (abs(pitch) < 3)) { 
+        pwm_set_dt(pwms[0], period, duty0);
+        pwm_set_dt(pwms[1], period, duty1);
+        pwm_set_dt(pwms[2], period, duty2);
+        pwm_set_dt(pwms[3], period, duty3);
+        printk("oi\n");
+        k_usleep(4000);
 
 
     } else { // sem botão, deligar PWM
-        ret = pwm_set_dt(pwms[0], period, duty);
-        ret = pwm_set_dt(pwms[1], period, duty);
-        ret = pwm_set_dt(pwms[2], period, duty);
-        ret = pwm_set_dt(pwms[3], period, duty);
+        pwm_set_dt(pwms[0], period, duty);
+        pwm_set_dt(pwms[1], period, duty);
+        pwm_set_dt(pwms[2], period, duty);
+        pwm_set_dt(pwms[3], period, duty);
         yaw = 0;
-        printk ("coords: P = %d R = %d dY = %d\n", pitch, roll, dyaw);
-        printk ("dutys: 1 = %d 2 = %d 3 = %d 4 = %d \n", (duty0 * 100)/ PERIOD , (duty1 * 100)/ PERIOD, (duty2 * 100)/ PERIOD, (duty3 * 100)/ PERIOD);
+        printk ("coords: P = %f R = %f butão = %d \n", pitch, roll, gpio_pin_get_dt(&button));
+        printk ("dutys: 1 = %d 2 = %d 3 = %d 4 = %d  certo = %d \n", (duty0 * 100)/ PERIOD , (duty1 * 100)/ PERIOD, (duty2 * 100)/ PERIOD, (duty3 * 100)/ PERIOD , (duty * 100)/ PERIOD);
     }
-    k_usleep(1);
   }
 
   return 0;

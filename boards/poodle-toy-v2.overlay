@@ -7,7 +7,6 @@
 		pwm-motor4 = &pwm_led4;
 		pwm-motor5 = &pwm_led5;
 		button0 = &button_0;
-		imu-sensor = &mpu6050;
 	};
 
 	gpio_keys {
@@ -16,7 +15,6 @@
 			gpios = <&arduino_header 10 0>;
 		};
 	};
-
 
 	pwmleds {
 		compatible = "pwm-leds";
@@ -47,8 +45,9 @@
 	};
 };
 
+
 &i2c0 {
-	mpu6050: mpu6050@68 {
+	mpu1: mpu1@68 {
 		compatible = "invensense,mpu6050";
 		reg = <0x68>;
 		status = "okay";
@@ -57,7 +56,21 @@
 		accel-fs = <2>;       /* Valid values: 2, 4, 8, 16 (in +/- g) */
 		gyro-fs = <250>;      /* Valid values: 250, 500, 1000, 2000 (in +/- deg/s) */
 
-		int-gpios = <&arduino_header 16 GPIO_ACTIVE_HIGH>;
+		int-gpios = <&arduino_header 19 GPIO_ACTIVE_HIGH>;
+
+		/* Sample rate divider (baserate / (1 + X)) */
+		smplrt-div = <0>;     /* 0 means 1kHz for accel, 8kHz for gyro */
+	};
+	mpu2: mpu2@69 {
+		compatible = "invensense,mpu6050";
+		reg = <0x69>;
+		status = "okay";
+
+		/* Resolution / Full-scale configuration */
+		accel-fs = <2>;       /* Valid values: 2, 4, 8, 16 (in +/- g) */
+		gyro-fs = <250>;      /* Valid values: 250, 500, 1000, 2000 (in +/- deg/s) */
+
+		int-gpios = <&arduino_header 19 GPIO_ACTIVE_HIGH>;
 
 		/* Sample rate divider (baserate / (1 + X)) */
 		smplrt-div = <0>;     /* 0 means 1kHz for accel, 8kHz for gyro */

@@ -1,13 +1,15 @@
 manifest:
     remotes:
         - name: caninos
-          url-base: https://github.com/anacforcelli
+          url-base: https://github.com/caninos-loucos
 
     projects:
-        - name: zephyr
+        - name: puppy-zephyr
           remote: caninos
           revision: main
+          path: zephyr
           import:
               name-allowlist:
                   - mcuboot
                   - zcbor
+                  - fatfs
