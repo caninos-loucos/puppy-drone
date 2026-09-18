@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0
  */
 
+#include <math.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/drivers/sensor.h>
@@ -34,76 +35,118 @@ static const struct pwm_dt_spec *pwms[NUM_PWMS] = {&pwm_motor0, &pwm_motor1,
                                                    &pwm_motor2, &pwm_motor3};
 
 /* Constantes de Controle */
-#define kpp 60000
-#define kpr 60000
-#define kdp 200
-#define kdr 200
-#define kip 300
-#define kir 300
+#define kp 18000
+#define ki 200
+#define kd 300
 
 /* Saturações dos Motores */
 #define MAXIPITCH 2
 #define MAXIROLL 2
 
 /* Duty cycle de Conexão com motores */
-#define CONNECT_DUTY 4 * PERIOD / 10
-#define BASE_DUTY 46 * PERIOD / 100
-#define DUTY_MAX 7 * PERIOD / 10
-#define DUTY_MIN 4 * PERIOD / 10
+#define CONNECT_DUTY PERIOD * 0.4f
+#define BASE_DUTY PERIOD * 0.44f
+#define DUTY_MAX PERIOD * 0.7f
+#define DUTY_MIN PERIOD * 0.4f
 
 /* Duty cycles de cada motor */
-int32_t duty0 = 0;
-int32_t duty1 = 0;
-int32_t duty2 = 0;
-int32_t duty3 = 0;
+int32_t motor_duty0 = CONNECT_DUTY;
+int32_t motor_duty1 = CONNECT_DUTY;
+int32_t motor_duty2 = CONNECT_DUTY;
+int32_t motor_duty3 = CONNECT_DUTY;
+
+float duty0 = 0;
+float duty1 = 0;
+float duty2 = 0;
+float duty3 = 0;
+
 float pitch = 0;
 float roll = 0;
 float ipitch = 0;
 float iroll = 0;
 float dpitch = 0;
 float droll = 0;
-float yaw = 0;
-float p1 = 0;
-float r1 = 0;
-float p2 = 0;
-float r2 = 0;
 
-void update_motors(struct k_timer *timer) {
-  ARG_UNUSED(timer);
+float p1 = 0.0f;
+float r1 = 0.0f;
+float p2 = 0.0f;
+float r2 = 0.0f;
 
-  if (!gpio_pin_get_dt(&button) && (abs(roll) < 3.5) && (abs(pitch) < 3.5)) {
-    pwm_set_dt(pwms[0], PERIOD, duty0);
-    pwm_set_dt(pwms[1], PERIOD, duty1);
-    pwm_set_dt(pwms[2], PERIOD, duty2);
-    pwm_set_dt(pwms[3], PERIOD, duty3);
+struct k_mutex motor_mutex;
+struct k_work motor_work;
 
+void update_motors_worker(struct k_work *work) {
+  ARG_UNUSED(work);
+
+  pwm_set_dt(pwms[0], PERIOD, motor_duty0);
+  pwm_set_dt(pwms[1], PERIOD, motor_duty1);
+  pwm_set_dt(pwms[2], PERIOD, motor_duty2);
+  pwm_set_dt(pwms[3], PERIOD, motor_duty3);
+
+  if (!gpio_pin_get_dt(&button)) {
+    motor_duty0 = CLAMP(duty0, DUTY_MIN, DUTY_MAX);
+    motor_duty1 = CLAMP(duty1, DUTY_MIN, DUTY_MAX);
+    motor_duty2 = CLAMP(duty2, DUTY_MIN, DUTY_MAX);
+    motor_duty3 = CLAMP(duty3, DUTY_MIN, DUTY_MAX);
   } else {
-    pwm_set_dt(pwms[0], PERIOD, CONNECT_DUTY);
-    pwm_set_dt(pwms[1], PERIOD, CONNECT_DUTY);
-    pwm_set_dt(pwms[2], PERIOD, CONNECT_DUTY);
-    pwm_set_dt(pwms[3], PERIOD, CONNECT_DUTY);
-    yaw = 0;
-    //printk("coords: P = %f \tR = %f \tbutão = %d \t", pitch, roll,
-           //gpio_pin_get_dt(&button));
-   // printk("dutys: 1 = %d \t2 = %d \t3 = %d \t4 = %d  \tcerto = %d \n", duty0,
-          // duty1, duty2, duty3, CONNECT_DUTY);
+    motor_duty0 = CONNECT_DUTY;
+    motor_duty1 = CONNECT_DUTY;
+    motor_duty2 = CONNECT_DUTY;
+    motor_duty3 = CONNECT_DUTY;
+
+    duty0 = 0.0f;
+    duty1 = 0.0f;
+    duty2 = 0.0f;
+    duty3 = 0.0f;
+
+    ipitch = 0.0f;
+    dpitch = 0.0f;
   }
+
+  k_mutex_lock(&motor_mutex, K_FOREVER);
+  dpitch = -p1 - p2 + pitch;
+  droll = -r1 - r2 + roll;
+
+  duty0 = BASE_DUTY - ((kp * pitch) + (kd * dpitch) + (ki * ipitch)) +
+          ((kp * roll) + (kd * droll) + (ki * iroll));
+  duty1 = BASE_DUTY + ((kp * pitch) + (kd * dpitch) + (ki * ipitch)) -
+          ((kp * roll) + (kd * droll) + (ki * iroll));
+  duty2 = BASE_DUTY - ((kp * pitch) + (kd * dpitch) + (ki * ipitch)) -
+          ((kp * roll) + (kd * droll) + (ki * iroll));
+  duty3 = BASE_DUTY + ((kp * pitch) + (kd * dpitch) + (ki * ipitch)) +
+          ((kp * roll) + (kd * droll) + (ki * iroll));
+
+  ipitch += pitch;
+  iroll += pitch;
+
+  if (fabsf(ipitch) > 3.5f)
+    ipitch = (ipitch / fabsf(ipitch)) * 3.5f;
+  if (fabsf(iroll) > 3.5f)
+    iroll = (iroll / fabsf(iroll)) * 3.5f;
+  k_mutex_unlock(&motor_mutex);
 }
 
-K_TIMER_DEFINE(motor_timer, &update_motors, NULL);
+void update_motors_timer(struct k_timer *timer) {
+  ARG_UNUSED(timer);
+  k_work_submit(&motor_work);
+}
+
+K_TIMER_DEFINE(motor_timer, &update_motors_timer, NULL);
 
 int main(void) {
   struct sensor_value accel1[3];
   struct sensor_value accel2[3];
   int ret;
+  k_mutex_init(&motor_mutex);
+  k_work_init(&motor_work, &update_motors_worker);
 
   if (!device_is_ready(imu1)) {
-    printf("1 não foi\n");
+    printf("IMU 1 not Ready!\n");
     return 0;
   }
 
   if (!device_is_ready(imu2)) {
-    printf("2 não foi\n");
+    printf("IMU 2 not Ready\n");
     return 0;
   }
 
@@ -129,62 +172,37 @@ int main(void) {
 
   k_usleep(5000000);
 
-  if (gpio_pin_get_dt(
-          &button)) { // se botão ligado, avisar antes de entrar no loop
+  if (gpio_pin_get_dt(&button)) {
     while (gpio_pin_get_dt(&button)) {
       printk("Desligue o botão e ligue de novo para iniciar!\n");
       k_usleep(500000);
     }
   }
 
-  k_timer_start(&motor_timer, K_USEC(2000), K_USEC(2000));
+  k_timer_start(&motor_timer, K_MSEC(1), K_MSEC(1));
 
   while (1) {
-
     sensor_sample_fetch(imu1);
     sensor_channel_get(imu1, SENSOR_CHAN_ACCEL_XYZ, accel1);
     sensor_sample_fetch(imu2);
     sensor_channel_get(imu2, SENSOR_CHAN_ACCEL_XYZ, accel2);
 
-    p1 = -sensor_value_to_float(&accel1[0]) / 2;
-    p2 = -sensor_value_to_float(&accel2[0]) / 2;
-    r1 = -sensor_value_to_float(&accel1[1]) / 2;
-    r2 = -sensor_value_to_float(&accel2[1]) / 2;
+    p1 = -sensor_value_to_float(&accel1[0]);
+    p2 = -sensor_value_to_float(&accel2[0]);
+    r1 = -sensor_value_to_float(&accel1[1]);
+    r2 = -sensor_value_to_float(&accel2[1]);
 
-    /* Disable IRQs while calculating the duty and roll/yaw values so that
-     * intermediate values are not sent to the motors */
-    uint32_t key = irq_lock();
+    k_mutex_lock(&motor_mutex, K_FOREVER);
 
-    dpitch = -p1 - p2 + pitch;
-    droll = -r1 - r2 + roll;
+    pitch = (p1 + p2) / 2;
+    roll = (r1 + r2) / 2;
 
-    pitch = p1 + p2;
-    roll = r1 + r2;
+    if (fabsf(pitch) > 3.5f)
+      pitch = (pitch / fabsf(pitch)) * 3.5f;
+    if (fabsf(roll) > 3.5f)
+      roll = (roll / fabsf(roll)) * 3.5f;
 
-    iroll = CLAMP(iroll, -MAXIROLL, MAXIROLL);
-    ipitch = CLAMP(ipitch, -MAXIPITCH, MAXIPITCH);
-
-    duty0 = (uint32_t)BASE_DUTY - ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) +
-            ((kpr * roll) + (kdr * droll) + (kir * iroll));
-    duty1 = (uint32_t)BASE_DUTY + ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) -
-            ((kpr * roll) + (kdr * droll) + (kir * iroll));
-    duty2 = (uint32_t)BASE_DUTY - ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) -
-            ((kpr * roll) + (kdr * droll) + (kir * iroll));
-    duty3 =(uint32_t) BASE_DUTY + ((kpp * pitch) + (kdp * dpitch) + (kip * ipitch)) +
-            ((kpr * roll) + (kdr * droll) + (kir * iroll));
-
-    duty0 = CLAMP(duty0, (uint32_t)DUTY_MIN, (uint32_t)DUTY_MAX);
-
-    duty1 = CLAMP(duty1, (uint32_t)DUTY_MIN, (uint32_t)DUTY_MAX);
-
-    duty2 = CLAMP(duty2, (uint32_t)DUTY_MIN, (uint32_t)DUTY_MAX);
-
-    duty3 = CLAMP(duty3, (uint32_t)DUTY_MIN, (uint32_t)DUTY_MAX);
-
-    irq_unlock(key);
-
-    ipitch += pitch;
-    iroll += pitch;
+    k_mutex_unlock(&motor_mutex);
   }
 
   return 0;
