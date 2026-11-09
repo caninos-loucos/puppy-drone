@@ -13,3 +13,4 @@ manifest:
                   - mcuboot
                   - zcbor
                   - fatfs
+                  - littlefs

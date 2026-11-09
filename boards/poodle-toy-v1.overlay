@@ -9,6 +9,7 @@
 
 	gpio_keys {
 		compatible = "gpio-keys";
+
 		button_0: button_0 {
 			gpios = <&arduino_header 10 GPIO_ACTIVE_HIGH>;
 		};
@@ -16,18 +17,22 @@
 
 	pwmleds {
 		compatible = "pwm-leds";
+
 		pwm_led0: pwm_led_0 {
 			pwms = <&pwm1 0 2500000 0>;
 			label = "io3";
 		};
+
 		pwm_led1: pwm_led_1 {
 			pwms = <&pwm1 1 2500000 0>;
 			label = "io5";
 		};
+
 		pwm_led2: pwm_led_2 {
 			pwms = <&pwm1 2 2500000 0>;
 			label = "io6";
 		};
+
 		pwm_led3: pwm_led_3 {
 			pwms = <&pwm1 3 2500000 0>;
 			label = "io7";
@@ -35,25 +40,10 @@
 	};
 };
 
-
 &i2c0 {
 	mpu1: mpu1@68 {
 		compatible = "invensense,mpu6050";
 		reg = <0x68>;
-		status = "okay";
-
-		/* Resolution / Full-scale configuration */
-		accel-fs = <2>;       /* Valid values: 2, 4, 8, 16 (in +/- g) */
-		gyro-fs = <250>;      /* Valid values: 250, 500, 1000, 2000 (in +/- deg/s) */
-
-		int-gpios = <&arduino_header 19 GPIO_ACTIVE_HIGH>;
-
-		/* Sample rate divider (baserate / (1 + X)) */
-		smplrt-div = <0>;     /* 0 means 1kHz for accel, 8kHz for gyro */
-	};
-	mpu2: mpu2@69 {
-		compatible = "invensense,mpu6050";
-		reg = <0x69>;
 		status = "okay";
 
 		/* Resolution / Full-scale configuration */
